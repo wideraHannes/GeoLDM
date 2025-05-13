@@ -45,7 +45,7 @@ def plot_coords(coords_mu, path, coords_logvar=None):
         coords_std = torch.sqrt(torch.exp(coords_logvar))
     else:
         coords_std = torch.zeros(coords_mu.size())
-    coords_size = (coords_std ** 2) * 1
+    (coords_std ** 2) * 1
 
     plt.scatter(coords_mu[:, 0], coords_mu[:, 1], alpha=0.6, s=100)
 

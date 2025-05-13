@@ -2,7 +2,6 @@ from torch.utils.data import DataLoader
 from qm9.data.args import init_argparse
 from qm9.data.collate import PreprocessQM9
 from qm9.data.utils import initialize_datasets
-import os
 
 
 def retrieve_dataloaders(cfg):

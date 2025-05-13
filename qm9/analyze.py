@@ -283,7 +283,7 @@ def main_check_stability(remove_h: bool, batch_size=32):
         from qm9.rdkit_functions import BasicMolecularMetrics
         metrics = BasicMolecularMetrics(dataset_info)
 
-    atom_decoder = dataset_info['atom_decoder']
+    dataset_info['atom_decoder']
 
     def test_validity_for(dataloader):
         count_mol_stable = 0

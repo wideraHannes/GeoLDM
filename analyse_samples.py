@@ -14,7 +14,7 @@ from fsscore.models.ranknet import LitRankNet
 import os
 import glob
 import argparse
-from typing import Tuple, List, Dict, Optional, Union, Any
+from typing import Tuple, Dict, Optional, Any
 
 # Third-party imports
 import numpy as np
@@ -22,7 +22,7 @@ import pandas as pd
 import torch
 from tqdm import tqdm
 from rdkit import Chem
-from rdkit.Chem import QED, AllChem, rdMolDescriptors
+from rdkit.Chem import QED, rdMolDescriptors
 
 # Project-specific imports
 from configs.paths import ANALYSIS_DIR

@@ -6,9 +6,8 @@ except ModuleNotFoundError:
 
 import utils
 import argparse
-from configs.datasets_config import qm9_with_h, qm9_without_h
 from qm9 import dataset
-from qm9.models import get_model, get_autoencoder, get_latent_diffusion
+from qm9.models import get_latent_diffusion
 
 from equivariant_diffusion.utils import assert_correctly_masked
 import torch
@@ -121,7 +120,6 @@ def main():
     args.cuda = not args.no_cuda and torch.cuda.is_available()
     device = torch.device("cuda" if args.cuda else "cpu")
     args.device = device
-    dtype = torch.float32
     utils.create_folders(args)
     print(args)
 

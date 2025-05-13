@@ -1,12 +1,12 @@
 from os.path import join as join
-import urllib.request
 
 import numpy as np
 import torch
 
-import logging, os, urllib
+import logging
+import os
 
-from qm9.data.prepare.utils import download_data, is_int, cleanup_file
+from qm9.data.prepare.utils import download_data, cleanup_file
 
 md17_base_url = 'http://quantum-machine.org/gdml/data/npz/'
 

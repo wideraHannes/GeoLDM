@@ -159,7 +159,6 @@ def plot_data3d(positions, atom_type, dataset_info, camera_elev=0, camera_azim=0
     white = (1, 1, 1)
     hex_bg_color = '#FFFFFF' if bg == 'black' else '#666666'
 
-    from mpl_toolkits.mplot3d import Axes3D
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
     ax.set_aspect('auto')
@@ -222,7 +221,6 @@ def plot_data3d_uncertainty(
     white = (1, 1, 1)
     hex_bg_color = '#FFFFFF' if bg == 'black' else '#666666'
 
-    from mpl_toolkits.mplot3d import Axes3D
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
     ax.set_aspect('auto')

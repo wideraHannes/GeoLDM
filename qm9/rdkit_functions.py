@@ -1,5 +1,4 @@
 from rdkit import Chem
-import numpy as np
 from qm9.bond_analyze import get_bond_order, geom_predictor
 from . import dataset
 import torch

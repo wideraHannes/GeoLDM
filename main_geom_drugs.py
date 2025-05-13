@@ -10,7 +10,7 @@ import utils
 import argparse
 import wandb
 from os.path import join
-from qm9.models import get_optim, get_model, get_autoencoder, get_latent_diffusion
+from qm9.models import get_optim, get_autoencoder, get_latent_diffusion
 from equivariant_diffusion import en_diffusion
 
 from equivariant_diffusion import utils as diffusion_utils
@@ -221,7 +221,7 @@ gradnorm_queue.add(3000)  # Add large value that will be flushed.
 def main():
     if args.resume is not None:
         flow_state_dict = torch.load(join(args.resume, 'flow.npy'))
-        dequantizer_state_dict = torch.load(join(args.resume, 'dequantizer.npy'))
+        torch.load(join(args.resume, 'dequantizer.npy'))
         optim_state_dict = torch.load(join(args.resume, 'optim.npy'))
         model.load_state_dict(flow_state_dict)
         optim.load_state_dict(optim_state_dict)

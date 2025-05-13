@@ -281,7 +281,7 @@ class TransformerNN(nn.Module):
     class SetDecoder(nn.Module):
         def __init__(self, cfg):
             super().__init__()
-            hidden, hidden_final = cfg.hidden_decoder, cfg.hidden_last_decoder
+            hidden, _hidden_final = cfg.hidden_decoder, cfg.hidden_last_decoder
             self.use_bn = cfg.use_batch_norm
             self.res = cfg.use_residual
             self.cosine_channels = cfg.cosine_channels

@@ -5,3 +5,19 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+ignore = [
+    "F401",  # imported but unused
+    "F403",  # unable to detect undefined names
+    "F811",  # redefinition of unused
+    "E722",  # do not use bare except
+    "E741",  # ambiguous variable name
+    "E721",  # use isinstance() for type checks
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
