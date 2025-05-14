@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from pocket_dataset import ProteinPocketDataset
+from test_dataset_pocket import CrossDockedPoseDataset, collate_fn, get_dataloaders
 from qm9.models import get_latent_diffusion
 from configs.datasets_config import get_dataset_info
 import pickle
@@ -181,23 +181,20 @@ def train_model():
         device="cpu",  # Force CPU usage
     )
 
-    # Initialize dataset
-    dataset = ProteinPocketDataset(
+    # Initialize dataloaders using the function from test_dataset_pocket
+    loaders = get_dataloaders(
         root_dir="crossdocked/crossdocked_pocket10",
-        split="train",
+        batch_size=4,  # Reduced batch size for CPU
+        num_workers=0,  # No parallel workers for CPU
         max_ligand_atoms=128,
         max_pocket_atoms=512,
         radius=6.0,
         remove_h=True,
     )
 
-    # Create dataloader with smaller batch size for CPU
-    dataloader = DataLoader(
-        dataset,
-        batch_size=4,  # Reduced batch size for CPU
-        shuffle=True,
-        num_workers=0,  # No parallel workers for CPU
-    )
+    # Get the training dataloader
+    dataloader = loaders["train"]
+    val_dataloader = loaders["val"]
 
     # Initialize optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
@@ -219,6 +216,18 @@ def train_model():
         # Print epoch statistics
         avg_loss = total_loss / len(dataloader)
         print(f"Epoch {epoch}, Average Loss: {avg_loss:.4f}")
+
+        # Validation
+        if epoch % 5 == 0:
+            model.eval()
+            val_loss = 0
+            with torch.no_grad():
+                for batch in val_dataloader:
+                    loss = model(batch)
+                    val_loss += loss.item()
+            avg_val_loss = val_loss / len(val_dataloader)
+            print(f"Validation Loss: {avg_val_loss:.4f}")
+            model.train()
 
 
 if __name__ == "__main__":
