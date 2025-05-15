@@ -59,8 +59,7 @@ if __name__ == "__main__":
     # --- slice pocket tensors in batch shape ------------------------
     pocket_mask = batch["pocket_mask"]  # (B,N,1)
     pocket_pos = batch["positions"] * pocket_mask  # (B,N,3)
-    pocket_feat = torch.cat([batch["x"], batch["charges"]], dim=-1) * pocket_mask
-    # (B,N,29)
+    pocket_feat = torch.cat([batch["x"], batch["charges"]], dim=-1) * pocket_mask  # (B,N,29)
 
     enc = PocketEncoder()
     z = enc(pocket_pos, pocket_feat, pocket_mask)  # (B,64)

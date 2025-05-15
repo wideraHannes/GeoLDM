@@ -109,6 +109,7 @@ class CrossDockedPoseDataset(Dataset):
         folders: Optional[Sequence[str]] = None,
         poses_per_site: Optional[int] = None,
     ):
+        print(f"=== MY_EXT CrossDockedPoseDataset INIT CALLED for split {split} ===")
         self.root = Path(root)
         self.max_l = max_ligand_atoms
         self.max_p = max_pocket_atoms
@@ -177,19 +178,35 @@ class CrossDockedPoseDataset(Dataset):
             q[start : start + n_p] = pq
             pocket_mask[start : start + n_p] = 1.0
 
-            # radius graph on REAL atoms only
+            # Zero out features for masked-out atoms (ligand only)
+            mask = lig_mask.squeeze(-1) > 0  # shape (N,)
+            pos[~mask] = 0
+            x[~mask] = 0
+            q[~mask] = 0
 
-            # real_idx = np.arange(n_l + n_p)
+            # radius graph on REAL atoms only
+            # Construct edge_mask here (N, N)
+            all_pos = np.concatenate([lpos, ppos], axis=0)
+            N_real = n_l + n_p
+            dist = np.linalg.norm(all_pos[:, None, :] - all_pos[None, :, :], axis=-1)
+            mask = (dist < 4.5) & (dist > 0)  # exclude self-edges
+            edge_mask = np.zeros((self.max_l + self.max_p, self.max_l + self.max_p), dtype=bool)
+            edge_mask[:N_real, :N_real] = mask
+
             edge_index = torch.zeros((2, 0), dtype=torch.long)  # Dummy edge_index
-            return {
+            batch = {
                 "x": torch.tensor(x),
                 "h": torch.tensor(x),  # duplicate for GeoLDM
                 "positions": torch.tensor(pos),
                 "charges": torch.tensor(q).unsqueeze(-1),
-                "atom_mask": torch.tensor(lig_mask),
-                "pocket_mask": torch.tensor(pocket_mask),
+                "atom_mask": torch.tensor(lig_mask).squeeze(-1),
+                "pocket_mask": torch.tensor(pocket_mask).squeeze(-1),
                 "edge_index": edge_index,  # variable length
+                "pdb_path": str(pdb),
+                "edge_mask": torch.tensor(edge_mask),
+                "one_hot": torch.tensor(x),
             }
+            return batch
         except Exception as e:
             print(f"[WARN] skipping sample {self.items[idx][0]} – {e}")
             return self.__getitem__((idx + 1) % len(self))
@@ -199,7 +216,7 @@ class CrossDockedPoseDataset(Dataset):
 # Collate & loaders
 # -----------------------------------------------------------------------------
 def collate_fn(samples: List[Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor]:
-    """Stacks fixed-size tensors, concatenates edge lists with node offsets."""
+    print("=== MY_EXT COLLATE_FN CALLED ===")
     out: Dict[str, torch.Tensor] = {}
     for k in samples[0]:
         if k == "edge_index":
@@ -209,6 +226,27 @@ def collate_fn(samples: List[Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor
     N = samples[0]["x"].shape[0]
     edges = [s["edge_index"] + i * N for i, s in enumerate(samples)]
     out["edge_index"] = torch.cat(edges, dim=1)  # (2, ΣE)
+
+    # Construct a valid edge_mask based on distance threshold
+    positions = out["positions"]  # (B, N, 3)
+    B = positions.shape[0]
+    edge_masks = []
+    threshold = 4.5  # Angstroms
+    for b in range(B):
+        pos = positions[b]  # (N, 3)
+        dist = torch.cdist(pos, pos)  # (N, N)
+        mask = (dist < threshold) & (dist > 0)  # exclude self-edges
+        edge_masks.append(mask)
+    out["edge_mask"] = torch.stack(edge_masks, 0)  # (B, N, N)
+
+    # Squeeze the last dimension to get [B, N] shape
+    out["atom_mask"] = out["atom_mask"]
+    out["node_mask"] = out["atom_mask"]  # shape (B, N)
+    out["pocket_mask"] = out["pocket_mask"]
+
+    print(f"[DEBUG] x shape: {out['x'].shape}")
+    print(f"[DEBUG] atom_mask shape: {out['atom_mask'].shape}, ndim: {out['atom_mask'].ndim}")
+    print(f"[DEBUG] node_mask shape: {out['node_mask'].shape}, ndim: {out['node_mask'].ndim}")
     return out
 
 
@@ -228,14 +266,23 @@ def get_dataloaders(
     subset_seed=0,
     **kws,
 ):
+    print("=== MY_EXT get_dataloaders CALLED ===")
     tr = CrossDockedPoseDataset(root_dir, split="train", **kws)
     va = CrossDockedPoseDataset(root_dir, split="val", **kws)
     te = CrossDockedPoseDataset(root_dir, split="test", **kws)
+    # Remove Subset wrappers
     tr, va, te = (_maybe_subset(ds, subset, subset_seed) for ds in (tr, va, te))
-    make = lambda ds, shuf: DataLoader(
-        ds, batch_size, shuffle=shuf, collate_fn=collate_fn, num_workers=num_workers
-    )
-    return {"train": make(tr, True), "val": make(va, False), "test": make(te, False)}
+
+    def make_loader(ds, shuf):
+        return DataLoader(
+            ds, batch_size, shuffle=shuf, collate_fn=collate_fn, num_workers=num_workers
+        )
+
+    return {
+        "train": make_loader(tr, True),
+        "val": make_loader(va, False),
+        "test": make_loader(te, False),
+    }
 
 
 # ----------------------------------------------------------------------------- #
@@ -244,6 +291,9 @@ if __name__ == "__main__":
     loaders = get_dataloaders(root, batch_size=2, subset=4)
     batch = next(iter(loaders["train"]))
     for k, v in batch.items():
+        if k == "pdb_path":
+            print(k, v)
+            continue
         print(k, tuple(v.shape))
 
     """
