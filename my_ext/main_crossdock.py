@@ -119,7 +119,5 @@ if __name__ == "__main__":
         "--exp_name",
         "poc_crossdock",
         "--train_diffusion",  # keep VAE frozen!
-        "--n_report_steps",
-        "5",
     ]
     run_with_pocket_context()
