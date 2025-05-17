@@ -123,17 +123,7 @@ class CrossDockedPoseDataset(Dataset):
             else [p for p in self.root.iterdir() if p.is_dir()]
         )
         site_dirs = sorted(site_dirs)
-        rng = np.random.RandomState(seed)
-        rng.shuffle(site_dirs)
-        n = len(site_dirs)
-        if split == "train":
-            site_dirs = site_dirs[: int(0.8 * n)]
-        elif split == "val":
-            site_dirs = site_dirs[int(0.8 * n) : int(0.9 * n)]
-        else:
-            site_dirs = site_dirs[int(0.9 * n) :]
-
-        self.items: List[Tuple[str, Path, Path]] = []
+        all_items: List[Tuple[str, Path, Path]] = []
         for site in site_dirs:
             sdf_files = sorted(site.glob("*.sdf"))
             if poses_per_site:
@@ -141,7 +131,24 @@ class CrossDockedPoseDataset(Dataset):
             for sdf in sdf_files:
                 pocket = site / f"{sdf.stem}{self.POCKET_SUFFIX}"
                 if pocket.exists():
-                    self.items.append((f"{site.name}/{sdf.stem}", sdf, pocket))
+                    all_items.append((f"{site.name}/{sdf.stem}", sdf, pocket))
+
+        # Shuffle and split into equal thirds
+        rng = np.random.RandomState(seed)
+        rng.shuffle(all_items)
+        n = len(all_items)
+        n_split = n // 3
+        if split == "train":
+            self.items = all_items[:n_split]
+        elif split == "val":
+            self.items = all_items[n_split : 2 * n_split]
+        else:
+            self.items = all_items[2 * n_split : 3 * n_split]
+        # If n is not divisible by 3, the last split may be slightly smaller
+
+        print(
+            f"[CrossDockedPoseDataset] Split '{split}' contains {len(self.items)} elements out of {n} total."
+        )
 
     # ----------------------------------------------------------------------
     def __len__(self):
@@ -280,7 +287,7 @@ def get_dataloaders(
 
     return {
         "train": make_loader(tr, True),
-        "val": make_loader(va, False),
+        "valid": make_loader(va, False),
         "test": make_loader(te, False),
     }
 
