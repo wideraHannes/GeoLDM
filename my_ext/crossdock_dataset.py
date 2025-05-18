@@ -1,6 +1,7 @@
 # my_ext/crossdock_dataset.py
 from __future__ import annotations
 from pathlib import Path
+import sys
 from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
@@ -8,41 +9,11 @@ import torch
 from torch.utils.data import Dataset, Subset
 from torch_geometric.loader import DataLoader
 from rdkit import Chem
-from Bio.PDB import PDBParser
+# from Bio.PDB import PDBParser  # No longer needed since protein features are not used
 
-# -----------------------------------------------------------------------------
-# Atom vocabulary
-# -----------------------------------------------------------------------------
-ATOM_TYPES = [
-    "H",
-    "C",
-    "N",
-    "O",
-    "S",
-    "P",
-    "F",
-    "Cl",
-    "Br",
-    "I",
-    "Na",
-    "K",
-    "Ca",
-    "Mg",
-    "Zn",
-    "Fe",
-    "B",
-    "Se",
-    "Si",
-    "Mn",
-    "Co",
-    "Cu",
-    "Ni",
-    "V",
-    "Cr",
-    "Hg",
-    "Pb",
-    "Al",
-]
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+ATOM_TYPES = ["H", "C", "N", "O", "F"]
 ATOM_TYPE_TO_IDX = {sym: i for i, sym in enumerate(ATOM_TYPES)}
 
 
@@ -69,18 +40,31 @@ def read_ligand_sdf(path: Path, *, remove_h=False):
     return x, pos, q
 
 
-def read_pocket_pdb(path: Path):
-    struct = PDBParser(QUIET=True).get_structure(path.stem, str(path))
-    atoms, pos = [], []
-    for a in struct.get_atoms():
-        s = a.element.strip().capitalize()
-        if s:  # skip blanks
-            atoms.append(one_hot(s))
-            pos.append(a.coord)
-    x = np.stack(atoms).astype(np.float32)
-    pos = np.asarray(pos, np.float32)
-    q = np.zeros(len(pos), dtype=np.int64)  # no charges for protein
-    return x, pos, q
+from my_ext.ESM_pocket_encoder import ESM2PocketEncoder
+import train_test
+
+encoder = ESM2PocketEncoder()
+orig_train_epoch = train_test.train_epoch
+orig_test = train_test.test
+
+
+def extract_pocket_context(pdb_path):
+    return encoder.encode_pdb(Path(pdb_path))
+
+
+# --- Protein pocket reading is not needed for now; comment out for later use ---
+# def read_pocket_pdb(path: Path):
+#     struct = PDBParser(QUIET=True).get_structure(path.stem, str(path))
+#     atoms, pos = [], []
+#     for a in struct.get_atoms():
+#         s = a.element.strip().capitalize()
+#         if s:  # skip blanks
+#             atoms.append(one_hot(s))
+#             pos.append(a.coord)
+#     x = np.stack(atoms).astype(np.float32)
+#     pos = np.asarray(pos, np.float32)
+#     q = np.zeros(len(pos), dtype=np.int64)  # no charges for protein
+#     return x, pos, q
 
 
 # -----------------------------------------------------------------------------
@@ -158,19 +142,16 @@ class CrossDockedPoseDataset(Dataset):
         try:
             _, sdf, pdb = self.items[idx]
             lx, lpos, lq = read_ligand_sdf(sdf, remove_h=self.rmH)
-            px, ppos, pq = read_pocket_pdb(pdb)
 
             # truncate to budgets
             lx, lpos, lq = lx[: self.max_l], lpos[: self.max_l], lq[: self.max_l]
-            px, ppos, pq = px[: self.max_p], ppos[: self.max_p], pq[: self.max_p]
 
-            n_l, n_p = len(lpos), len(ppos)
-            N = self.max_l + self.max_p  # 640
+            n_l = len(lpos)
+            N = self.max_l  # Only ligand atoms
             x = np.zeros((N, len(ATOM_TYPES)), np.float32)
             pos = np.zeros((N, 3), np.float32)
             q = np.zeros((N,), np.int64)
             lig_mask = np.zeros((N, 1), np.float32)
-            pocket_mask = np.zeros((N, 1), np.float32)
 
             # fill ligand block
             x[:n_l] = lx
@@ -178,38 +159,24 @@ class CrossDockedPoseDataset(Dataset):
             q[:n_l] = lq
             lig_mask[:n_l] = 1.0
 
-            # fill pocket block (starts at self.max_l to keep indices stable)
-            start = self.max_l
-            x[start : start + n_p] = px
-            pos[start : start + n_p] = ppos
-            q[start : start + n_p] = pq
-            pocket_mask[start : start + n_p] = 1.0
-
-            # Zero out features for masked-out atoms (ligand only)
-            mask = lig_mask.squeeze(-1) > 0  # shape (N,)
-            pos[~mask] = 0
-            x[~mask] = 0
-            q[~mask] = 0
-
             # radius graph on REAL atoms only
-            # Construct edge_mask here (N, N)
-            all_pos = np.concatenate([lpos, ppos], axis=0)
-            N_real = n_l + n_p
-            dist = np.linalg.norm(all_pos[:, None, :] - all_pos[None, :, :], axis=-1)
+            N_real = n_l
+            dist = np.linalg.norm(lpos[:, None, :] - lpos[None, :, :], axis=-1)
             mask = (dist < 4.5) & (dist > 0)  # exclude self-edges
-            edge_mask = np.zeros((self.max_l + self.max_p, self.max_l + self.max_p), dtype=bool)
+            edge_mask = np.zeros((self.max_l, self.max_l), dtype=bool)
             edge_mask[:N_real, :N_real] = mask
 
             edge_index = torch.zeros((2, 0), dtype=torch.long)  # Dummy edge_index
+            context = extract_pocket_context(str(pdb))  # encoded protein pocket
             batch = {
                 "x": torch.tensor(x),
                 "h": torch.tensor(x),  # duplicate for GeoLDM
                 "positions": torch.tensor(pos),
                 "charges": torch.tensor(q).unsqueeze(-1),
                 "atom_mask": torch.tensor(lig_mask).squeeze(-1),
-                "pocket_mask": torch.tensor(pocket_mask).squeeze(-1),
                 "edge_index": edge_index,  # variable length
-                "pdb_path": str(pdb),
+                "context": context,
+                # "pdb_path": str(pdb),  # Only keep the path for later use
                 "edge_mask": torch.tensor(edge_mask),
                 "one_hot": torch.tensor(x),
             }
@@ -228,7 +195,13 @@ def collate_fn(samples: List[Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor
     for k in samples[0]:
         if k == "edge_index":
             continue
-        out[k] = torch.stack([s[k] for s in samples], 0)
+        if k == "context":
+            # Expand context to (N, 64) for each sample, then stack to (B, N, 64)
+            N = samples[0]["x"].shape[0]
+            context_expanded = [s["context"].unsqueeze(0).expand(N, -1) for s in samples]
+            out["context"] = torch.stack(context_expanded, 0)  # (B, N, 64)
+        else:
+            out[k] = torch.stack([s[k] for s in samples], 0)
 
     N = samples[0]["x"].shape[0]
     edges = [s["edge_index"] + i * N for i, s in enumerate(samples)]
@@ -287,7 +260,7 @@ def get_dataloaders(
 
     return {
         "train": make_loader(tr, True),
-        "valid": make_loader(va, False),
+        "valid": make_loader(va, False),  # Must be 'valid' for main_qm9.py compatibility
         "test": make_loader(te, False),
     }
 
@@ -306,9 +279,10 @@ if __name__ == "__main__":
     """
     x (2, 640, 28) -> 640 atoms -> each atom one of 28 types
     h (2, 640, 28)
+    edge_index (2, 2, 0) -> where are the edges
     positions (2, 640, 3) -> 640 atoms -> each atom in 3D space
     charges (2, 640, 1) -> 640 charges
+    context (2, 64) -> ESM2 output 64 dimensions
     atom_mask (2, 640, 1) -> Binary Mask: where is the ligand
     pocket_mask (2, 640, 1) -> Binary Mask: where is the Pocket
-    edge_index (2, 2, 0) -> where are the edges
     """

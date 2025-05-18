@@ -63,44 +63,10 @@ qm9.dataset.retrieve_dataloaders = patched_retrieve_dataloaders
 
 
 def run_with_pocket_context():
-    from my_ext.ESM_pocket_encoder import ESM2PocketEncoder
+    from main_qm9 import main, args
 
-    encoder = ESM2PocketEncoder()
-    import train_test
-
-    orig_train_epoch = train_test.train_epoch
-    orig_test = train_test.test
-
-    def extract_pocket_context(batch):
-        pdb_paths = batch["pdb_path"]  # (B,) list of strings
-        pocket_codes = []
-        for i, pdb_path in enumerate(pdb_paths):
-            pocket_vec = encoder.encode_pdb(Path(pdb_path))  # (64,)
-            pocket_codes.append(pocket_vec)
-        context = torch.stack(pocket_codes).to(batch["positions"].device)  # (B,64)
-        context = context.unsqueeze(1).expand(-1, batch["positions"].shape[1], -1)
-        return context
-
-    def train_epoch_with_context(*args, **kwargs):
-        loader = kwargs.get("loader", args[1] if len(args) > 1 else None)
-        for batch in loader:
-            context = extract_pocket_context(batch)
-            batch["context"] = context
-        return orig_train_epoch(*args, **kwargs)
-
-    def test_with_context(*args, **kwargs):
-        loader = kwargs.get("loader", args[1] if len(args) > 1 else None)
-        for batch in loader:
-            context = extract_pocket_context(batch)
-            batch["context"] = context
-        return orig_test(*args, **kwargs)
-
-    train_test.train_epoch = train_epoch_with_context
-    train_test.test = test_with_context
-
-    # Call main as usual
-    from main_qm9 import main
-
+    if getattr(args, "dataset", None) == "crossdock_pocket10":
+        args.context_node_nf = 64
     main()
 
 
@@ -119,5 +85,8 @@ if __name__ == "__main__":
         "--exp_name",
         "poc_crossdock",
         "--train_diffusion",  # keep VAE frozen!
+        "--test_epochs",
+        "1",
+        "--no-cuda",
     ]
     run_with_pocket_context()
