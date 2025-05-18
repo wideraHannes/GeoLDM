@@ -28,5 +28,5 @@ crossdock_pocket10 = {
     "n_nodes": {
         int(i): float(p) for i, p in enumerate(n_nodes_hist.tolist())
     },  # dict for robust indexing
-    "context_node_nf": 64,
+    "context_node_nf": 64,  # Each node receives a 64-dimensional context embedding
 }

@@ -49,6 +49,15 @@ orig_test = train_test.test
 
 
 def extract_pocket_context(pdb_path):
+    """
+    Extract a 64-dimensional context embedding for a protein pocket PDB file.
+    
+    Args:
+        pdb_path: Path to the protein pocket PDB file
+        
+    Returns:
+        A 64-dimensional tensor representing the protein pocket context
+    """
     return encoder.encode_pdb(Path(pdb_path))
 
 
@@ -167,7 +176,14 @@ class CrossDockedPoseDataset(Dataset):
             edge_mask[:N_real, :N_real] = mask
 
             edge_index = torch.zeros((2, 0), dtype=torch.long)  # Dummy edge_index
-            context = extract_pocket_context(str(pdb))  # encoded protein pocket
+            
+            # Extract the 64-dimensional context embedding for the protein pocket
+            context = extract_pocket_context(str(pdb))  # encoded protein pocket - shape (64,)
+            
+            # Create a context_node_features tensor that will be used as context conditioning for each node
+            # We'll expand this to have the same size as N (max_ligand_atoms)
+            context_node_features = context.unsqueeze(0).expand(N, -1)  # Shape: (N, 64)
+            
             batch = {
                 "x": torch.tensor(x),
                 "h": torch.tensor(x),  # duplicate for GeoLDM
@@ -175,7 +191,8 @@ class CrossDockedPoseDataset(Dataset):
                 "charges": torch.tensor(q).unsqueeze(-1),
                 "atom_mask": torch.tensor(lig_mask).squeeze(-1),
                 "edge_index": edge_index,  # variable length
-                "context": context,
+                "context": context,  # Original context vector (64,)
+                "context_node_features": context_node_features,  # New field: expanded to (N, 64)
                 # "pdb_path": str(pdb),  # Only keep the path for later use
                 "edge_mask": torch.tensor(edge_mask),
                 "one_hot": torch.tensor(x),
@@ -190,6 +207,22 @@ class CrossDockedPoseDataset(Dataset):
 # Collate & loaders
 # -----------------------------------------------------------------------------
 def collate_fn(samples: List[Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor]:
+    """
+    Collate function for DataLoader that processes a batch of samples.
+    
+    This function handles the following special cases:
+    1. Edge indices are concatenated with appropriate offsets
+    2. Context embeddings (both global and per-node) are properly formatted:
+       - Raw context vector (64-dim) is expanded to each atom in the molecule
+       - Per-node context features are stacked across the batch
+    3. Edge masks are constructed based on distance thresholds
+    
+    Args:
+        samples: List of dictionaries, each representing a sample
+        
+    Returns:
+        A dictionary with batched tensors
+    """
     print("=== MY_EXT COLLATE_FN CALLED ===")
     out: Dict[str, torch.Tensor] = {}
     for k in samples[0]:
@@ -207,6 +240,9 @@ def collate_fn(samples: List[Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor
                 out["context"] = torch.stack([s["context"] for s in samples], 0)
             else:
                 raise ValueError("context must be 1D or 2D tensor per sample")
+        elif k == "context_node_features":
+            # Stack the context_node_features tensors from each sample
+            out["context_node_features"] = torch.stack([s["context_node_features"] for s in samples], 0)  # (B, N, 64)
         else:
             out[k] = torch.stack([s[k] for s in samples], 0)
 
@@ -289,7 +325,8 @@ if __name__ == "__main__":
     edge_index (2, 2, 0) -> where are the edges
     positions (2, 640, 3) -> 640 atoms -> each atom in 3D space
     charges (2, 640, 1) -> 640 charges
-    context (2, 64) -> ESM2 output 64 dimensions
+    context (2, 64) -> ESM2 output 64 dimensions (global context)
+    context_node_features (2, 640, 64) -> 64-dim context for each atom
     atom_mask (2, 640, 1) -> Binary Mask: where is the ligand
     pocket_mask (2, 640, 1) -> Binary Mask: where is the Pocket
     """

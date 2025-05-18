@@ -28,8 +28,19 @@ class PocketEncoder(nn.Module):
         self,
         pocket_pos: torch.Tensor,  # (B,N,3)
         pocket_feat: torch.Tensor,  # (B,N,29)  28+1
-        pocket_mask: torch.Tensor,
-    ):  # (B,N,1)   1 = real atom
+        pocket_mask: torch.Tensor,  # (B,N,1)   1 = real atom
+    ) -> torch.Tensor:  # (B,64)
+        """
+        Encode pocket atoms into a fixed 64-dimensional vector
+        
+        Args:
+            pocket_pos: Pocket atom positions, shape (B,N,3)
+            pocket_feat: Pocket atom features (one-hot + charge), shape (B,N,29)
+            pocket_mask: Binary mask, 1 = real atom, shape (B,N,1)
+            
+        Returns:
+            A 64-dimensional context vector for each batch sample, shape (B,64)
+        """
         B, N, _ = pocket_pos.shape
         # concat features along last dim
         h = torch.cat([pocket_pos, pocket_feat], dim=-1)  # (B,N,32)

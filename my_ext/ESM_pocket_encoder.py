@@ -20,6 +20,17 @@ def pocket_fasta(pocket_pdb: Path) -> str:
 
 # --- ESM-2 Pocket Encoder ---
 class ESM2PocketEncoder:
+    """
+    Encoder that uses the ESM2 protein language model to generate context embeddings for protein pockets.
+    
+    This encoder:
+    1. Takes a protein pocket PDB file
+    2. Extracts the amino acid sequence
+    3. Passes it through ESM2 model
+    4. Projects the output to a fixed 64-dimensional vector
+    
+    This vector can be used as context conditioning for ligand generation.
+    """
     def __init__(self, device=None, proj_dim=64, freeze_proj=False):
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.model, self.alphabet = esm.pretrained.esm2_t30_150M_UR50D()
@@ -40,6 +51,15 @@ class ESM2PocketEncoder:
 
     @torch.no_grad()
     def encode_pdb(self, pdb_path: Path) -> torch.Tensor:
+        """
+        Encode a protein pocket PDB file into a fixed-size context vector.
+        
+        Args:
+            pdb_path: Path to the protein pocket PDB file
+            
+        Returns:
+            A 64-dimensional tensor representing the protein context
+        """
         fasta = pocket_fasta(pdb_path)
         return self.encode_fasta(fasta)
 
