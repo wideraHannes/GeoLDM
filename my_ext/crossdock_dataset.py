@@ -196,10 +196,17 @@ def collate_fn(samples: List[Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor
         if k == "edge_index":
             continue
         if k == "context":
-            # Expand context to (N, 64) for each sample, then stack to (B, N, 64)
-            N = samples[0]["x"].shape[0]
-            context_expanded = [s["context"].unsqueeze(0).expand(N, -1) for s in samples]
-            out["context"] = torch.stack(context_expanded, 0)  # (B, N, 64)
+            context = samples[0]["context"]
+            if context.dim() == 1:
+                # (D,) -> (N, D)
+                N = samples[0]["x"].shape[0]
+                context_expanded = [s["context"].unsqueeze(0).expand(N, -1) for s in samples]
+                out["context"] = torch.stack(context_expanded, 0)  # (B, N, D)
+            elif context.dim() == 2:
+                # (N, D)
+                out["context"] = torch.stack([s["context"] for s in samples], 0)
+            else:
+                raise ValueError("context must be 1D or 2D tensor per sample")
         else:
             out[k] = torch.stack([s[k] for s in samples], 0)
 

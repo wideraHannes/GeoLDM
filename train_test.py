@@ -105,8 +105,9 @@ def train_epoch(
             and not (epoch == 0 and i == 0)
             and args.train_diffusion
         ):
+            """
             start = time.time()
-            """ if len(args.conditioning) > 0:
+            if len(args.conditioning) > 0:
                 save_and_sample_conditional(
                     args, device, model_ema, prop_dist, dataset_info, epoch=epoch
                 )
