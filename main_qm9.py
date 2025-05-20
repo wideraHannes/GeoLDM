@@ -19,6 +19,7 @@ import time
 import pickle
 from qm9.utils import prepare_context, compute_mean_mad
 from train_test import train_epoch, test, analyze_and_save
+import qm9.utils as qm9utils
 
 parser = argparse.ArgumentParser(description="E3Diffusion")
 parser.add_argument("--exp_name", type=str, default="debug_10")
@@ -215,11 +216,14 @@ dataloaders, charge_scale = dataset.retrieve_dataloaders(args)
 
 data_dummy = next(iter(dataloaders["train"]))
 
-
+property_norms = None
 if len(args.conditioning) > 0:
     print(f"Conditioning on {args.conditioning}")
-    property_norms = compute_mean_mad(dataloaders, args.conditioning, args.dataset)
-    context_dummy = prepare_context(args.conditioning, data_dummy, property_norms)
+    # property_norms = compute_mean_mad(dataloaders, args.conditioning, args.dataset)
+    # context_dummy = prepare_context(args.conditioning, data_dummy, property_norms)
+    context_dummy = qm9utils.prepare_context_pocket(
+        data_dummy["context"], data_dummy["positions"], data_dummy["atom_mask"]
+    )
     context_node_nf = context_dummy.size(2)
 else:
     context_node_nf = 0
@@ -307,10 +311,17 @@ def main():
             if isinstance(model, en_diffusion.EnVariationalDiffusion):
                 wandb.log(model.log_info(), commit=True)
 
-            if not args.break_train_epoch and args.train_diffusion:
-                """                 analyze_and_save(args=args, epoch=epoch, model_sample=model_ema, nodes_dist=nodes_dist,
-                                 dataset_info=dataset_info, device=device,
-                                 prop_dist=prop_dist, n_samples=args.n_stability_samples) """
+            # if not args.break_train_epoch and args.train_diffusion:
+            analyze_and_save(
+                args=args,
+                epoch=epoch,
+                model_sample=model_ema,
+                nodes_dist=nodes_dist,
+                dataset_info=dataset_info,
+                device=device,
+                prop_dist=prop_dist,
+                n_samples=4,  # args.n_stability_samples,
+            )
             nll_val = test(
                 args=args,
                 loader=dataloaders["valid"],

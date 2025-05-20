@@ -66,8 +66,7 @@ def run_with_pocket_context():
     from main_qm9 import main, args
 
     if getattr(args, "dataset", None) == "crossdock_pocket10":
-        args.context_node_nf = 64  # Set the context dimension to match our pocket embedding
-        print(f"Setting context_node_nf={args.context_node_nf} for protein pocket conditioning")
+        args.context_node_nf = 64
     main()
 
 
@@ -89,5 +88,9 @@ if __name__ == "__main__":
         "--test_epochs",
         "1",
         "--no-cuda",
+        "--conditioning",
+        "pocket",
+        "--diffusion_steps",
+        "1",
     ]
     run_with_pocket_context()

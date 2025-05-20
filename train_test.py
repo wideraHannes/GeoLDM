@@ -63,9 +63,14 @@ def train_epoch(
         h = {"categorical": one_hot, "integer": charges}
 
         if len(args.conditioning) > 0:
-            context = qm9utils.prepare_context(args.conditioning, data, property_norms).to(
+            """ context = qm9utils.prepare_context(args.conditioning, data, property_norms).to(
                 device, dtype
+            ) """
+
+            context = qm9utils.prepare_context_pocket(
+                data["context"], data["positions"], data["atom_mask"]
             )
+            print("added pocket ", context.shape)
             assert_correctly_masked(context, node_mask)
         else:
             context = None
@@ -176,8 +181,11 @@ def test(
             h = {"categorical": one_hot, "integer": charges}
 
             if len(args.conditioning) > 0:
-                context = qm9utils.prepare_context(args.conditioning, data, property_norms).to(
+                """ context = qm9utils.prepare_context(args.conditioning, data, property_norms).to(
                     device, dtype
+                ) """
+                context = qm9utils.prepare_context_pocket(
+                    data["context"], data["positions"], data["atom_mask"]
                 )
                 assert_correctly_masked(context, node_mask)
             else:
@@ -268,11 +276,10 @@ def analyze_and_save(
     device,
     dataset_info,
     prop_dist,
-    n_samples=1000,
-    batch_size=100,
+    n_samples=3,
 ):
     print(f"Analyzing molecule stability at epoch {epoch}...")
-    batch_size = min(batch_size, n_samples)
+    batch_size = min(args.batch_size, n_samples)
     assert n_samples % batch_size == 0
     molecules = {"one_hot": [], "x": [], "node_mask": []}
     for i in range(int(n_samples / batch_size)):

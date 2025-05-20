@@ -29,6 +29,8 @@ def get_model(args, device, dataset_info, dataloader_train):
         print("Warning: dynamics model is _not_ conditioned on time.")
         dynamics_in_node_nf = in_node_nf
 
+    print("Diffusion STEPS!", args.diffusion_steps)
+
     net_dynamics = EGNN_dynamics_QM9(
         in_node_nf=dynamics_in_node_nf,
         context_node_nf=args.context_node_nf,
@@ -72,8 +74,8 @@ def get_autoencoder(args, device, dataset_info, dataloader_train):
     nodes_dist = DistributionNodes(histogram)
 
     prop_dist = None
-    if len(args.conditioning) > 0:
-        prop_dist = DistributionProperty(dataloader_train, args.conditioning)
+    # if len(args.conditioning) > 0:
+    #    prop_dist = DistributionProperty(dataloader_train, args.conditioning)
 
     # if args.condition_time:
     #     dynamics_in_node_nf = in_node_nf + 1
