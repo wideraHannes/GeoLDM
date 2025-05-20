@@ -142,21 +142,22 @@ def sample(
     print(f"DEBUG: Starting context conditioning. args.context_node_nf={args.context_node_nf}")
     if args.context_node_nf > 0:
         print(f"DEBUG: Conditioning type: {'pocket' if 'pocket' in args.conditioning else 'other'}")
-        if 'pocket' in args.conditioning:
+        if "pocket" in args.conditioning:
             # For pocket conditioning
             if context is None:
                 print("DEBUG: No context provided, creating dummy pocket encoding")
                 # Create a dummy pocket encoding with correct dimensions for sampling
                 pocket_encoding = torch.zeros(batch_size, args.context_node_nf).to(device)
-                
+
                 # Create dummy positions for prepare_context_pocket function
                 dummy_positions = torch.zeros(batch_size, max_n_nodes, 3).to(device)
-                
+
                 # Convert node_mask to the right format (remove last dimension)
                 atom_mask = node_mask.squeeze(-1)
-                
+
                 # Use the prepare_context_pocket function to properly format context
                 from qm9.utils import prepare_context_pocket
+
                 print("DEBUG: Calling prepare_context_pocket with dummy encoding")
                 context = prepare_context_pocket(pocket_encoding, dummy_positions, atom_mask)
                 print(f"DEBUG: prepare_context_pocket returned tensor with shape {context.shape}")
@@ -169,9 +170,12 @@ def sample(
                     dummy_positions = torch.zeros(batch_size, max_n_nodes, 3).to(device)
                     atom_mask = node_mask.squeeze(-1)
                     from qm9.utils import prepare_context_pocket
+
                     print("DEBUG: Calling prepare_context_pocket with provided encoding")
                     context = prepare_context_pocket(context, dummy_positions, atom_mask)
-                    print(f"DEBUG: prepare_context_pocket returned tensor with shape {context.shape}")
+                    print(
+                        f"DEBUG: prepare_context_pocket returned tensor with shape {context.shape}"
+                    )
         else:
             # For non-pocket conditioning (original code)
             print("DEBUG: Using non-pocket conditioning")
