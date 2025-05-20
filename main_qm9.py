@@ -286,6 +286,7 @@ def main():
 
     best_nll_val = 1e8
     best_nll_test = 1e8
+    print(model_dp)
     for epoch in range(args.start_epoch, args.n_epochs):
         start_epoch = time.time()
         train_epoch(
@@ -312,7 +313,7 @@ def main():
                 wandb.log(model.log_info(), commit=True)
 
             # if not args.break_train_epoch and args.train_diffusion:
-            analyze_and_save(
+            """  analyze_and_save(
                 args=args,
                 epoch=epoch,
                 model_sample=model_ema,
@@ -321,7 +322,7 @@ def main():
                 device=device,
                 prop_dist=prop_dist,
                 n_samples=4,  # args.n_stability_samples,
-            )
+            ) """
             nll_val = test(
                 args=args,
                 loader=dataloaders["valid"],

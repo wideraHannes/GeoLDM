@@ -44,8 +44,6 @@ def train_epoch(
         edge_mask = data["edge_mask"].to(device, dtype)
         one_hot = data["one_hot"].to(device, dtype)
         charges = (data["charges"] if args.include_charges else torch.zeros(0)).to(device, dtype)
-        print("x: ", x)
-        print("node_mask: ", node_mask)
         x = remove_mean_with_mask(x, node_mask)
 
         if args.augment_noise > 0:

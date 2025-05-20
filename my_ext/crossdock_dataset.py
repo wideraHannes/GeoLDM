@@ -117,18 +117,34 @@ class CrossDockedPoseDataset(Dataset):
                 if pocket.exists():
                     all_items.append((f"{site.name}/{sdf.stem}", sdf, pocket))
 
-        # Shuffle and split into equal thirds
+        # Shuffle and split into thirds by default, or using standard 90/5/5 split
         rng = np.random.RandomState(seed)
         rng.shuffle(all_items)
         n = len(all_items)
-        n_split = n // 3
-        if split == "train":
-            self.items = all_items[:n_split]
-        elif split == "val":
-            self.items = all_items[n_split : 2 * n_split]
+
+        # Allow for different split ratios
+        split_mode = getattr(self, "split_mode", "equal")  # Default to equal splits
+        split_mode = "normal"
+        if split_mode == "equal":
+            # Equal thirds split
+            n_split = n // 3
+            if split == "train":
+                self.items = all_items[:n_split]
+            elif split == "val":
+                self.items = all_items[n_split : 2 * n_split]
+            else:  # test
+                self.items = all_items[2 * n_split : 3 * n_split]
         else:
-            self.items = all_items[2 * n_split : 3 * n_split]
-        # If n is not divisible by 3, the last split may be slightly smaller
+            # Standard 90/5/5 split
+            train_end = int(0.9 * n)
+            val_end = train_end + int(0.05 * n)
+
+            if split == "train":
+                self.items = all_items[:train_end]
+            elif split == "val":
+                self.items = all_items[train_end:val_end]
+            else:  # test
+                self.items = all_items[val_end:]
 
         print(
             f"[CrossDockedPoseDataset] Split '{split}' contains {len(self.items)} elements out of {n} total."
