@@ -14,6 +14,7 @@ import qm9.utils as qm9utils
 from qm9 import losses
 import time
 import torch
+from my_ext.crossdock_dataset import IDX_TO_ATOM_TYPE
 
 
 def train_epoch(
@@ -37,6 +38,9 @@ def train_epoch(
     model.train()
     nll_epoch = []
     n_iterations = len(loader)
+    # Initialize atom type counts accumulator
+    if epoch == 0:
+        epoch_atom_type_counts = np.zeros(len(IDX_TO_ATOM_TYPE), dtype=np.float32)
     for i, data in enumerate(loader):
         print("batch", i)
         x = data["positions"].to(device, dtype)
@@ -102,6 +106,12 @@ def train_epoch(
                 f"GradNorm: {grad_norm:.1f}"
             )
         nll_epoch.append(nll.item())
+
+        # Accumulate atom type counts
+        if epoch == 0:
+            atom_type_counts = one_hot.sum(dim=(0, 1)).cpu().numpy()
+            epoch_atom_type_counts += atom_type_counts
+
         if (
             (epoch % args.test_epochs == 0)
             and (i % args.visualize_every_batch == 0)
@@ -138,6 +148,21 @@ def train_epoch(
         wandb.log({"Batch NLL": nll.item()}, commit=True)
         if args.break_train_epoch:
             break
+
+    # At the end of the epoch, log the accumulated atom type distribution
+    if epoch == 0:
+        labels = [IDX_TO_ATOM_TYPE[i] for i in range(len(epoch_atom_type_counts))]
+        data = [[label, count] for label, count in zip(labels, epoch_atom_type_counts)]
+        table = wandb.Table(data=data, columns=["label", "value"])
+        wandb.log(
+            {
+                "epoch_atom_type_distribution": wandb.plot.bar(
+                    table, "label", "value", title="Epoch Atom Type Distribution"
+                )
+            },
+            commit=False,
+        )
+
     wandb.log({"Train Epoch NLL": np.mean(nll_epoch)}, commit=False)
 
 

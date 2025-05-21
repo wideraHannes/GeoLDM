@@ -13,13 +13,48 @@ from rdkit import Chem
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-ATOM_TYPES = ["H", "C", "N", "O", "F"]
+ATOM_TYPES = [
+    "H",
+    "Li",
+    "B",
+    "C",
+    "N",
+    "O",
+    "F",
+    "Mg",
+    "Si",
+    "P",
+    "S",
+    "Cl",
+    "Sc",
+    "V",
+    "Cr",
+    "Fe",
+    "Co",
+    "Cu",
+    "Se",
+    "Br",
+    "Y",
+    "Mo",
+    "Ru",
+    "Sn",
+    "I",
+    "W",
+    "Au",
+    "Hg",
+    "As",
+]
 ATOM_TYPE_TO_IDX = {sym: i for i, sym in enumerate(ATOM_TYPES)}
+
+# Create an inverse mapping from one-hot encoding to atom type strings
+IDX_TO_ATOM_TYPE = {i: sym for i, sym in enumerate(ATOM_TYPES)}
 
 
 def one_hot(sym: str, *, n=len(ATOM_TYPES)) -> np.ndarray:
     v = np.zeros(n, dtype=np.float32)
-    v[ATOM_TYPE_TO_IDX.get(sym.capitalize(), 0)] = 1.0
+    if sym.capitalize() not in ATOM_TYPE_TO_IDX:
+        raise ValueError(f"Atom type '{sym}' not found in ATOM_TYPES")
+    v[ATOM_TYPE_TO_IDX[sym.capitalize()]] = 1.0
     return v
 
 
@@ -290,8 +325,8 @@ def get_dataloaders(
 
 # ----------------------------------------------------------------------------- #
 if __name__ == "__main__":
-    root = "crossdocked/crossdocked_pocket10"
-    loaders = get_dataloaders(root, batch_size=2, subset=4)
+    root = "crossdocked/crossdocked_pocket_debug"
+    loaders = get_dataloaders(root, batch_size=20, subset=4)
     batch = next(iter(loaders["train"]))
     for k, v in batch.items():
         if k == "pdb_path":
@@ -300,8 +335,8 @@ if __name__ == "__main__":
         print(k, tuple(v.shape))
 
     """
-    x (2, 640, 28) -> 640 atoms -> each atom one of 28 types
-    h (2, 640, 28)
+    x (2, 640, 29) -> 640 atoms -> each atom one of 29 types
+    h (2, 640, 29)
     edge_index (2, 2, 0) -> where are the edges
     positions (2, 640, 3) -> 640 atoms -> each atom in 3D space
     charges (2, 640, 1) -> 640 charges

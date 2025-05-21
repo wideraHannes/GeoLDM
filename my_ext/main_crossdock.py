@@ -91,6 +91,8 @@ if __name__ == "__main__":
         "--conditioning",
         "pocket",
         "--diffusion_steps",
+        "500",
+        "--latent_nf",  # default is 4,
         "1",
     ]
     run_with_pocket_context()
