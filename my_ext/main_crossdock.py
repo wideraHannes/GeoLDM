@@ -88,11 +88,15 @@ if __name__ == "__main__":
         "--no-cuda",
         "--exp_name",
         "poc_crossdock_debug",  # New experiment name
-        "--conditioning",
-        "pocket",
+        # "--conditioning", # remove conditioning for now
+        # "pocket",
         "--diffusion_steps",
         "500",
         "--latent_nf",  # default is 4,
-        "1",
+        "2",
+        "--lr",
+        "0.0002",
+        # "--train_diffusion",
+        # "--trainable_ae",
     ]
     run_with_pocket_context()

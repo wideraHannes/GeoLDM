@@ -1021,7 +1021,9 @@ class EnHierarchicalVAE(torch.nn.Module):
         # Combining the terms
         assert loss_recon.size() == loss_kl.size()
         loss = loss_recon + self.kl_weight * loss_kl
-
+        print(
+            f"ENHieracicalVAE loss - total: {loss.mean().item():.4f}  reconstruct: {loss_recon.mean().item():.4f} kl_div: {(self.kl_weight * loss_kl).mean().item():.4f}"
+        )
         assert len(loss.shape) == 1, f"{loss.shape} has more than only batch dim."
 
         return loss, {"loss_t": loss.squeeze(), "rec_error": loss_recon.squeeze()}
@@ -1227,6 +1229,9 @@ class EnLatentDiffusion(EnVariationalDiffusion):
             loss_recon = self.vae.compute_reconstruction_error(xh_rec, xh)
         else:
             loss_recon = 0
+
+        loss_recon_mean = torch.mean(loss_recon)
+        print("Reconstruction Loss", loss_recon_mean.item())
 
         z_x = z_xh[:, :, : self.n_dims]
         z_h = z_xh[:, :, self.n_dims :]

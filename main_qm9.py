@@ -236,6 +236,9 @@ if args.train_diffusion:
     model, nodes_dist, prop_dist = get_latent_diffusion(
         args, device, dataset_info, dataloaders["train"]
     )
+    print("loaded complete Latent Diffusion model")
+    if args.trainable_ae:
+        print("Train AE within the Latent Diffusion")
 else:
     model, nodes_dist, prop_dist = get_autoencoder(args, device, dataset_info, dataloaders["train"])
 

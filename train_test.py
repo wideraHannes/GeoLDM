@@ -72,7 +72,6 @@ def train_epoch(
             context = qm9utils.prepare_context_pocket(
                 data["context"], data["positions"], data["atom_mask"]
             )
-            print("added pocket ", context.shape)
             assert_correctly_masked(context, node_mask)
         else:
             context = None

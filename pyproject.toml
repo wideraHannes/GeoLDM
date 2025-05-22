@@ -18,6 +18,10 @@ dependencies = [
     "wandb>=0.19.11",
 ]
 
+[tool.uv]
+package = true
+
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"
