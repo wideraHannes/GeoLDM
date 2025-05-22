@@ -75,12 +75,9 @@ def read_ligand_sdf(path: Path, *, remove_h=False):
     return x, pos, q
 
 
-from my_ext.ESM_pocket_encoder import ESM2PocketEncoder
-import train_test
+from ESM_pocket_encoder import ESM2PocketEncoder
 
 encoder = ESM2PocketEncoder()
-orig_train_epoch = train_test.train_epoch
-orig_test = train_test.test
 
 
 def extract_pocket_context(pdb_path):
