@@ -4,4 +4,41 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "biopython>=1.85",
+    "fair-esm>=2.0.0",
+    "imageio>=2.37.0",
+    "matplotlib>=3.10.3",
+    "numpy>=2.2.5",
+    "pip>=25.1.1",
+    "rdkit>=2025.3.2",
+    "scipy>=1.15.3",
+    "torch>=2.7.0",
+    "torch-geometric>=2.6.1",
+    "wandb>=0.19.11",
+]
+
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["./"]
+include = ["src", "scripts", "configs"]
+
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+ignore = [
+    "F401",  # imported but unused
+    "F403",  # unable to detect undefined names
+    "F811",  # redefinition of unused
+    "E722",  # do not use bare except
+    "E741",  # ambiguous variable name
+    "E721",  # use isinstance() for type checks
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
