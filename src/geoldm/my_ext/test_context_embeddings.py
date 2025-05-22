@@ -12,7 +12,7 @@ import traceback
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 try:
-    from my_ext.crossdock_dataset import get_dataloaders
+    from src.geoldm.my_ext.crossdock_dataset import get_dataloaders
     print("Successfully imported crossdock_dataset")
 except ImportError as e:
     print(f"Error importing get_dataloaders: {e}")

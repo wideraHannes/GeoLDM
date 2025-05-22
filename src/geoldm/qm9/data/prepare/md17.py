@@ -6,7 +6,7 @@ import torch
 import logging
 import os
 
-from qm9.data.prepare.utils import download_data, cleanup_file
+from src.geoldm.qm9.data.prepare.utils import download_data, cleanup_file
 
 md17_base_url = 'http://quantum-machine.org/gdml/data/npz/'
 

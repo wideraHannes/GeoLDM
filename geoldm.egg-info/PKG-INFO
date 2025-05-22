@@ -1,3 +1,23 @@
+Metadata-Version: 2.4
+Name: geoldm
+Version: 0.1.0
+Summary: Add your description here
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: biopython>=1.85
+Requires-Dist: fair-esm>=2.0.0
+Requires-Dist: imageio>=2.37.0
+Requires-Dist: matplotlib>=3.10.3
+Requires-Dist: numpy>=2.2.5
+Requires-Dist: pip>=25.1.1
+Requires-Dist: rdkit>=2025.3.2
+Requires-Dist: scipy>=1.15.3
+Requires-Dist: torch>=2.7.0
+Requires-Dist: torch-geometric>=2.6.1
+Requires-Dist: wandb>=0.19.11
+Dynamic: license-file
+
 # GeoLDM: Geometric Latent Diffusion Models for 3D Molecule Generation
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/MinkaiXu/GeoLDM/blob/main/LICENSE)

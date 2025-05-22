@@ -1,22 +1,8 @@
+from src.geoldm.qm9 import dataset as qm9_dataset
+import src.geoldm.configs.datasets_config as dsc
+from src.geoldm.my_ext.crossdock_info import crossdock_pocket10
+from src.geoldm.my_ext.crossdock_dataset import CrossDockedPoseDataset
 import sys
-import torch
-import argparse
-from pathlib import Path
-import os
-
-
-# Add the project root directory to the Python path
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-
-# Add the qm9 directory to the Python path
-sys.path.append(str(Path(__file__).resolve().parent.parent / "qm9"))
-
-from qm9 import dataset as qm9_dataset
-import configs.datasets_config as dsc
-from my_ext.crossdock_info import crossdock_pocket10
-from my_ext.crossdock_dataset import CrossDockedPoseDataset, collate_fn
-
-print("cwd:", os.getcwd())
 
 # ----- 1.  Monkey-patch dataset info -----
 
@@ -43,7 +29,7 @@ qm9_dataset.get_dataset = get_dataset
 # Patch retrieve_dataloaders to support crossdock_pocket10
 def patched_retrieve_dataloaders(cfg):
     if cfg.dataset == "crossdock_pocket10":
-        from my_ext.crossdock_dataset import get_dataloaders
+        from src.geoldm.my_ext.crossdock_dataset import get_dataloaders
 
         dataloaders = get_dataloaders(
             root_dir=cfg.datadir,
@@ -56,14 +42,14 @@ def patched_retrieve_dataloaders(cfg):
         return original_retrieve_dataloaders(cfg)
 
 
-import qm9.dataset
+from src.geoldm import qm9
 
 original_retrieve_dataloaders = qm9.dataset.retrieve_dataloaders
 qm9.dataset.retrieve_dataloaders = patched_retrieve_dataloaders
 
 
 def run_with_pocket_context():
-    from main_qm9 import main, args
+    from scripts.main_qm9 import main, args
 
     if getattr(args, "dataset", None) == "crossdock_pocket10":
         args.context_node_nf = 64

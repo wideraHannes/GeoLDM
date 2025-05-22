@@ -3,8 +3,8 @@ import numpy as np
 
 import logging
 
-from qm9.data.dataset_class import ProcessedDataset
-from qm9.data.prepare import prepare_dataset
+from src.geoldm.qm9.data.dataset_class import ProcessedDataset
+from src.geoldm.qm9.data.prepare.download import prepare_dataset
 
 
 def initialize_datasets(args, datadir, dataset, subset=None, splits=None,

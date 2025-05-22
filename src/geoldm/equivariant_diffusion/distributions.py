@@ -1,5 +1,5 @@
 import torch
-from equivariant_diffusion.utils import \
+from src.geoldm.equivariant_diffusion.utils import \
     center_gravity_zero_gaussian_log_likelihood_with_mask, \
     standard_gaussian_log_likelihood_with_mask, \
     center_gravity_zero_gaussian_log_likelihood, \

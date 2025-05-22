@@ -1,4 +1,4 @@
-from my_ext.crossdock_dataset import ATOM_TYPES, ATOM_TYPE_TO_IDX
+from src.geoldm.my_ext.crossdock_dataset import ATOM_TYPES, ATOM_TYPE_TO_IDX
 import torch
 
 

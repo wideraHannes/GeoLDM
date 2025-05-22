@@ -4,20 +4,20 @@ try:
 except ModuleNotFoundError:
     pass
 import copy
-import utils
+from scripts import utils
 import argparse
 import wandb
-from src.geoldm.configs import get_dataset_info
+from src.geoldm.configs.datasets_config import get_dataset_info
 from os.path import join
-from qm9 import dataset
+from src.geoldm.qm9 import dataset
 from src.geoldm.qm9.models import get_optim, get_autoencoder, get_latent_diffusion
+import src.geoldm.qm9.utils as qm9utils
 from src.geoldm.equivariant_diffusion import en_diffusion, utils as flow_utils
 from src.geoldm.equivariant_diffusion.utils import assert_correctly_masked
 import torch
 import time
 import pickle
-from train_test import train_epoch, test
-import qm9.utils as qm9utils
+from scripts.train_test import train_epoch, test
 
 parser = argparse.ArgumentParser(description="E3Diffusion")
 parser.add_argument("--exp_name", type=str, default="debug_10")

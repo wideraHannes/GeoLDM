@@ -1,7 +1,7 @@
 from torch.utils.data import DataLoader
-from qm9.data.args import init_argparse
-from qm9.data.collate import PreprocessQM9
-from qm9.data.utils import initialize_datasets
+from src.geoldm.qm9.data.args import init_argparse
+from src.geoldm.qm9.data.collate import PreprocessQM9
+from src.geoldm.qm9.data.utils import initialize_datasets
 
 
 def retrieve_dataloaders(cfg):
@@ -35,7 +35,7 @@ def retrieve_dataloaders(cfg):
                                          collate_fn=preprocess.collate_fn)
                              for split, dataset in datasets.items()}
     elif 'geom' in cfg.dataset:
-        import build_geom_dataset
+        from scripts import build_geom_dataset
         from src.geoldm.configs import get_dataset_info
         data_file = './data/geom/geom_drugs_30.npy'
         dataset_info = get_dataset_info(cfg.dataset, cfg.remove_h)

@@ -67,7 +67,7 @@ class ESM2PocketEncoder:
 
 # --- Test block ---
 if __name__ == "__main__":
-    from my_ext.crossdock_dataset import get_dataloaders
+    from src.geoldm.my_ext.crossdock_dataset import get_dataloaders
     import torch
 
     # Load 2 samples from the dataloader

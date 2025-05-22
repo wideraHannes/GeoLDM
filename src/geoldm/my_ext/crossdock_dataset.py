@@ -75,7 +75,7 @@ def read_ligand_sdf(path: Path, *, remove_h=False):
     return x, pos, q
 
 
-from ESM_pocket_encoder import ESM2PocketEncoder
+from src.geoldm.my_ext.ESM_pocket_encoder import ESM2PocketEncoder
 
 encoder = ESM2PocketEncoder()
 

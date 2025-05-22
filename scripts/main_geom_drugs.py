@@ -3,7 +3,7 @@ try:
     from rdkit import Chem
 except ModuleNotFoundError:
     pass
-import build_geom_dataset
+from scripts import build_geom_dataset
 from src.geoldm.configs import geom_with_h
 import copy
 import utils

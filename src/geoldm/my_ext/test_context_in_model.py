@@ -9,7 +9,7 @@ from pathlib import Path
 # Add project root to Python path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from my_ext.crossdock_dataset import get_dataloaders
+from src.geoldm.my_ext.crossdock_dataset import get_dataloaders
 
 
 class SimpleNetwork(torch.nn.Module):

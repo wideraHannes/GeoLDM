@@ -1,20 +1,15 @@
-from equivariant_diffusion import utils
+from src.geoldm.equivariant_diffusion import utils
 import numpy as np
 import math
 import torch
-from egnn import models
+from src.geoldm.egnn import models
 from torch.nn import functional as F
-from equivariant_diffusion import utils as diffusion_utils
+from src.geoldm.equivariant_diffusion import utils as diffusion_utils
 
 
 # Defining some useful util functions.
 def expm1(x: torch.Tensor) -> torch.Tensor:
     return torch.expm1(x)
-
-
-def softplus(x: torch.Tensor) -> torch.Tensor:
-    return F.softplus(x)
-
 
 def sum_except_batch(x):
     return x.view(x.size(0), -1).sum(-1)
