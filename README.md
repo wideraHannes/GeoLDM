@@ -5,7 +5,7 @@
 
 <!-- [[Code](https://github.com/MinkaiXu/GeoLDM)] -->
 
-![cover](equivariant_diffusion/framework.png)
+![cover](src/geoldm/equivariant_diffusion/framework.png)
 
 Official code release for the paper "Geometric Latent Diffusion Models for 3D Molecule Generation", accepted at *International Conference on Machine Learning, 2023*.
 
