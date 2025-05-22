@@ -3,6 +3,7 @@
 integrate pocket information into geoldm in multiple steps (crossdock 2020 dataset).
 Dataset consists of pocket-ligand pairs.
 The end goal is to provide solely the pocket at inference time and the model shall output binding ligands.
+Read and optimize [Expose](https://pad.hhu.de/uhO1gxicS8S2RXKNxQmQkg?view)
 
 1. using the conditional context slot already present
 
@@ -30,6 +31,37 @@ The end goal is to provide solely the pocket at inference time and the model sha
 ![cover](src/geoldm/equivariant_diffusion/framework.png)
 
 Official code release for the paper "Geometric Latent Diffusion Models for 3D Molecule Generation", accepted at _International Conference on Machine Learning, 2023_.
+
+### GeoLDM: background knowlege
+
+**GeoLDM**  
+Built on top of EGNN and EDM.
+
+- Modified EGNN into a VAE  
+  → _"EGNN as VAE"_
+
+- uses EDM as diffusion model
+
+### [EGNN](https://arxiv.org/pdf/2102.09844)
+
+**Equivariant Graph Neural Networks**
+
+- Equivariant to: rotation, translation, reflection, permutation
+- No need for higher-order features
+- Efficient and performant
+
+---
+
+### [EDM](https://arxiv.org/pdf/2203.17003)
+
+**Equivariant Diffusion Model**
+
+- For 3D molecule generation
+- E(3)-equivariant network
+- Learns to denoise diffusion
+- Works on:
+  - Atom coordinates (continuous)
+  - Atom types (categorical)
 
 ## 🚀 Working with `uv`
 
