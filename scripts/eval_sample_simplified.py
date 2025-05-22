@@ -7,16 +7,16 @@ except ModuleNotFoundError:
 import utils
 import argparse
 from qm9 import dataset
-from qm9.models import get_latent_diffusion
+from src.geoldm.qm9.models import get_latent_diffusion
 
-from equivariant_diffusion.utils import assert_correctly_masked
+from src.geoldm.equivariant_diffusion.utils import assert_correctly_masked
 import torch
 import pickle
 import qm9.visualizer as vis
 from qm9.analyze import check_stability
 from os.path import join
 from qm9.sampling import sample_chain, sample
-from configs.datasets_config import get_dataset_info
+from src.geoldm.configs import get_dataset_info
 
 
 def check_mask_correct(variables, node_mask):

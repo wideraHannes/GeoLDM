@@ -2,9 +2,9 @@ import torch
 from torch.distributions.categorical import Categorical
 
 import numpy as np
-from egnn.models import EGNN_dynamics_QM9, EGNN_encoder_QM9, EGNN_decoder_QM9
+from src.geoldm.egnn.models import EGNN_dynamics_QM9, EGNN_encoder_QM9, EGNN_decoder_QM9
 
-from equivariant_diffusion.en_diffusion import (
+from src.geoldm.equivariant_diffusion.en_diffusion import (
     EnVariationalDiffusion,
     EnHierarchicalVAE,
     EnLatentDiffusion,

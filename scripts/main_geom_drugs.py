@@ -4,16 +4,15 @@ try:
 except ModuleNotFoundError:
     pass
 import build_geom_dataset
-from configs.datasets_config import geom_with_h
+from src.geoldm.configs import geom_with_h
 import copy
 import utils
 import argparse
 import wandb
 from os.path import join
-from qm9.models import get_optim, get_autoencoder, get_latent_diffusion
-from equivariant_diffusion import en_diffusion
+from src.geoldm.qm9.models import get_optim, get_autoencoder, get_latent_diffusion
+from src.geoldm.equivariant_diffusion import en_diffusion, utils as diffusion_utils
 
-from equivariant_diffusion import utils as diffusion_utils
 import torch
 import time
 import pickle
@@ -130,7 +129,7 @@ parser.add_argument('--sequential', action='store_true',
                     help='Organize data by size to reduce average memory usage.')
 args = parser.parse_args()
 
-data_file = './data/geom/geom_drugs_30.npy'
+data_file = 'src/geoldm/data/geom/geom_drugs_30.npy'
 
 if args.remove_h:
     raise NotImplementedError()

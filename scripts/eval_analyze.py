@@ -6,13 +6,13 @@ except ModuleNotFoundError:
 import utils
 import argparse
 from qm9 import dataset
-from qm9.models import get_latent_diffusion
-from equivariant_diffusion.utils import assert_mean_zero_with_mask, remove_mean_with_mask,\
+from src.geoldm.qm9.models import get_latent_diffusion
+from src.geoldm.equivariant_diffusion.utils import assert_mean_zero_with_mask, remove_mean_with_mask,\
     assert_correctly_masked
 import torch
 import time
 import pickle
-from configs.datasets_config import get_dataset_info
+from src.geoldm.configs import get_dataset_info
 from os.path import join
 from qm9.sampling import sample
 from qm9.analyze import analyze_stability_for_molecules

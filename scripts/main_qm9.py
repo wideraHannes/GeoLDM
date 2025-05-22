@@ -7,18 +7,16 @@ import copy
 import utils
 import argparse
 import wandb
-from configs.datasets_config import get_dataset_info
+from src.geoldm.configs import get_dataset_info
 from os.path import join
 from qm9 import dataset
-from qm9.models import get_optim, get_autoencoder, get_latent_diffusion
-from equivariant_diffusion import en_diffusion
-from equivariant_diffusion.utils import assert_correctly_masked
-from equivariant_diffusion import utils as flow_utils
+from src.geoldm.qm9.models import get_optim, get_autoencoder, get_latent_diffusion
+from src.geoldm.equivariant_diffusion import en_diffusion, utils as flow_utils
+from src.geoldm.equivariant_diffusion.utils import assert_correctly_masked
 import torch
 import time
 import pickle
-from qm9.utils import prepare_context, compute_mean_mad
-from train_test import train_epoch, test, analyze_and_save
+from train_test import train_epoch, test
 import qm9.utils as qm9utils
 
 parser = argparse.ArgumentParser(description="E3Diffusion")

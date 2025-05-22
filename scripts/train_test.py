@@ -1,5 +1,5 @@
 import wandb
-from equivariant_diffusion.utils import (
+from src.geoldm.equivariant_diffusion.utils import (
     assert_mean_zero_with_mask,
     remove_mean_with_mask,
     assert_correctly_masked,
@@ -12,9 +12,8 @@ from qm9.sampling import sample_chain, sample, sample_sweep_conditional
 import utils
 import qm9.utils as qm9utils
 from qm9 import losses
-import time
 import torch
-from my_ext.crossdock_dataset import IDX_TO_ATOM_TYPE
+from src.geoldm.my_ext.crossdock_dataset import IDX_TO_ATOM_TYPE
 
 
 def train_epoch(
