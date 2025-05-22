@@ -1,6 +1,7 @@
 LICENSE
 README.md
 pyproject.toml
+configs/paths.py
 geoldm.egg-info/PKG-INFO
 geoldm.egg-info/SOURCES.txt
 geoldm.egg-info/dependency_links.txt

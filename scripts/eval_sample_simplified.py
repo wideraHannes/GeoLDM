@@ -1,10 +1,12 @@
 # Rdkit import should be first, do not move it
+from configs.paths import OUTPUTS_DIR
+
 try:
     from rdkit import Chem
 except ModuleNotFoundError:
     pass
 
-import utils
+import scripts.utils as utils
 import argparse
 from src.geoldm.qm9 import dataset
 from src.geoldm.qm9.models import get_latent_diffusion
@@ -16,7 +18,7 @@ import src.geoldm.qm9.visualizer as vis
 from src.geoldm.qm9.analyze import check_stability
 from os.path import join
 from src.geoldm.qm9.sampling import sample_chain, sample
-from src.geoldm.configs import get_dataset_info
+from src.geoldm.configs.datasets_config import get_dataset_info
 
 
 def check_mask_correct(variables, node_mask):
@@ -121,7 +123,7 @@ def main():
     parser.add_argument(
         "--model_path",
         type=str,
-        default="outputs/qm9_latent2",
+        default=OUTPUTS_DIR / "qm9_latent2",
         help="Specify model path",
     )
     parser.add_argument(

@@ -38,3 +38,9 @@ crossdocked/crossdocked_small
 crossdocked/crossdocked_pocket_debug
 
 .venv
+
+
+outputs/*
+
+
+geoldm.egg-info
