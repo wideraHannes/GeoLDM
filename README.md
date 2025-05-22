@@ -91,6 +91,12 @@ Here i implemented:
 - a crossdock dataloader
 - an execution [script](./src/geoldm/my_ext/main_crossdock.py) that wraps around the qm9 script to run training with my args.
 
+so you can according to [2. run scripts]() execute this file with
+
+```bash
+uv run src/geoldm/my_ext/main_crossdock.py
+```
+
 ### Dataset
 
 We plan to train using the same data sets as [Pocket2Mol](https://github.com/pengxingang/Pocket2Mol) and [SBDD](https://github.com/luost26/3D-Generative-SBDD) model.
