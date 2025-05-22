@@ -106,7 +106,7 @@ target-version = ["py38"]
 
 ## 3. Import Refactoring
 
-### 3.1 Create proper __init__.py files
+### 3.1 Create proper **init**.py files
 
 Create empty `__init__.py` files for all subpackages to make Python imports work correctly.
 
@@ -119,7 +119,7 @@ Replace relative imports with absolute imports throughout the codebase:
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent))
-from qm9.utils import some_function
+from src.geoldm.qm9.utils import some_function
 
 # New import style (absolute imports):
 from geoldm.qm9.utils import some_function
@@ -142,7 +142,7 @@ def main():
     parser = argparse.ArgumentParser()
     # Add argument parsing...
     args = parser.parse_args()
-    
+
     # Use absolute imports from the installed package
     model = create_model(args)
     # Rest of the code...
@@ -185,7 +185,7 @@ uv pip freeze > uv.lock
 
 ## 7. Common Import Patterns
 
-### 7.1 Expose key functions in __init__.py
+### 7.1 Expose key functions in **init**.py
 
 In module `__init__.py` files, expose important functions to simplify imports:
 

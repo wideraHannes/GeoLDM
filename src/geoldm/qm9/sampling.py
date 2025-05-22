@@ -1,8 +1,11 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
-from src.geoldm.equivariant_diffusion.utils import assert_mean_zero_with_mask, assert_correctly_masked
-from qm9.analyze import check_stability
+from src.geoldm.equivariant_diffusion.utils import (
+    assert_mean_zero_with_mask,
+    assert_correctly_masked,
+)
+from src.geoldm.qm9.analyze import check_stability
 
 
 def rotate_chain(z):
@@ -155,7 +158,7 @@ def sample(
                 atom_mask = node_mask.squeeze(-1)
 
                 # Use the prepare_context_pocket function to properly format context
-                from qm9.utils import prepare_context_pocket
+                from src.geoldm.qm9.utils import prepare_context_pocket
 
                 context = prepare_context_pocket(pocket_encoding, dummy_positions, atom_mask)
             else:
@@ -164,7 +167,7 @@ def sample(
                     # Need to expand to all nodes
                     dummy_positions = torch.zeros(batch_size, max_n_nodes, 3).to(device)
                     atom_mask = node_mask.squeeze(-1)
-                    from qm9.utils import prepare_context_pocket
+                    from src.geoldm.qm9.utils import prepare_context_pocket
 
                     context = prepare_context_pocket(context, dummy_positions, atom_mask)
         else:

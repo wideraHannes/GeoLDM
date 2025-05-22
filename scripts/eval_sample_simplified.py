@@ -6,16 +6,16 @@ except ModuleNotFoundError:
 
 import utils
 import argparse
-from qm9 import dataset
+from src.geoldm.qm9 import dataset
 from src.geoldm.qm9.models import get_latent_diffusion
 
 from src.geoldm.equivariant_diffusion.utils import assert_correctly_masked
 import torch
 import pickle
-import qm9.visualizer as vis
-from qm9.analyze import check_stability
+import src.geoldm.qm9.visualizer as vis
+from src.geoldm.qm9.analyze import check_stability
 from os.path import join
-from qm9.sampling import sample_chain, sample
+from src.geoldm.qm9.sampling import sample_chain, sample
 from src.geoldm.configs import get_dataset_info
 
 
@@ -35,7 +35,6 @@ def save_and_sample_chain(
     id_from=0,
     num_chains=100,
 ):
-
     for i in range(num_chains):
         target_path = f"eval/chain_{i}/"
 
@@ -91,9 +90,7 @@ def sample_only_stable_different_sizes_and_save(
     counter = 0
     for i in range(n_tries):
         num_atoms = int(node_mask[i : i + 1].sum().item())
-        atom_type = (
-            one_hot[i : i + 1, :num_atoms].argmax(2).squeeze(0).cpu().detach().numpy()
-        )
+        atom_type = one_hot[i : i + 1, :num_atoms].argmax(2).squeeze(0).cpu().detach().numpy()
         x_squeeze = x[i : i + 1, :num_atoms].squeeze(0).cpu().detach().numpy()
         mol_stable = check_stability(x_squeeze, atom_type, dataset_info)[0]
 
@@ -186,9 +183,7 @@ def main():
         train_dataloader = None
 
     print("4.")
-    flow, nodes_dist, prop_dist = get_latent_diffusion(
-        args, device, dataset_info, train_dataloader
-    )
+    flow, nodes_dist, prop_dist = get_latent_diffusion(args, device, dataset_info, train_dataloader)
     flow.to(device)
     print("5.")
     fn = "generative_model_ema.npy" if args.ema_decay > 0 else "generative_model.npy"

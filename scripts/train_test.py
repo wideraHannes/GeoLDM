@@ -6,12 +6,12 @@ from src.geoldm.equivariant_diffusion.utils import (
     sample_center_gravity_zero_gaussian_with_mask,
 )
 import numpy as np
-import qm9.visualizer as vis
-from qm9.analyze import analyze_stability_for_molecules
-from qm9.sampling import sample_chain, sample, sample_sweep_conditional
-import utils
-import qm9.utils as qm9utils
-from qm9 import losses
+import src.geoldm.qm9.visualizer as vis
+from src.geoldm.qm9.analyze import analyze_stability_for_molecules
+from src.geoldm.qm9.sampling import sample_chain, sample, sample_sweep_conditional
+import scripts.utils as utils
+import src.geoldm.qm9.utils as qm9utils
+from src.geoldm.qm9 import losses
 import torch
 from src.geoldm.my_ext.crossdock_dataset import IDX_TO_ATOM_TYPE
 

@@ -9,7 +9,7 @@ import imageio
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from qm9 import bond_analyze
+from src.geoldm.qm9 import bond_analyze
 ##############
 ### Files ####
 ###########-->
@@ -393,7 +393,7 @@ def visualize_chain_uncertainty(
 
 if __name__ == '__main__':
     #plot_grid()
-    import qm9.dataset as dataset
+    import src.geoldm.qm9.dataset as dataset
     from src.geoldm.configs import qm9_with_h, geom_with_h
     matplotlib.use('macosx')
 
