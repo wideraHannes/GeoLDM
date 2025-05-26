@@ -13,7 +13,8 @@ from rdkit import Chem
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-ATOM_TYPES = [
+# QM9 only constits of 5 Atom types therefore we must filter
+""" ATOM_TYPES = [
     "H",
     "Li",
     "B",
@@ -43,7 +44,9 @@ ATOM_TYPES = [
     "Au",
     "Hg",
     "As",
-]
+] """
+
+ATOM_TYPES = ["H", "C", "N", "O", "F"]
 ATOM_TYPE_TO_IDX = {sym: i for i, sym in enumerate(ATOM_TYPES)}
 
 # Create an inverse mapping from one-hot encoding to atom type strings
@@ -65,6 +68,13 @@ def read_ligand_sdf(path: Path, *, remove_h=False):
     mol = Chem.SDMolSupplier(str(path), removeHs=remove_h, sanitize=False)[0]
     if mol is None:
         raise ValueError(f"RDKit failed for {path}")
+
+    # Check if the molecule contains any atoms not in ATOM_TYPES
+    for atom in mol.GetAtoms():
+        sym = atom.GetSymbol().capitalize()
+        if sym not in ATOM_TYPES:
+            raise ValueError(f"Molecule contains unsupported atom type: {sym}")
+
     try:
         Chem.Kekulize(mol, clearAromaticFlags=True)
     except Exception:
@@ -131,6 +141,7 @@ class CrossDockedPoseDataset(Dataset):
         self.max_p = max_pocket_atoms
         self.R = radius
         self.rmH = remove_h
+        self.max_retries = 200  # Limit retries to prevent infinite recursion
 
         # ---------- build (pose_id, sdf, pocket) index ---------------------
         site_dirs = (
@@ -186,11 +197,25 @@ class CrossDockedPoseDataset(Dataset):
     def __len__(self):
         return len(self.items)
 
-    def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
+    def __getitem__(self, idx: int, retry_count: int = 0) -> Dict[str, torch.Tensor]:
+        if retry_count >= self.max_retries:
+            raise RuntimeError(
+                f"Maximum retries ({self.max_retries}) exceeded. Could not find a valid molecule."
+            )
+
         try:
             _, sdf, pdb = self.items[idx]
-            lx, lpos, lq = read_ligand_sdf(sdf, remove_h=self.rmH)
-
+            try:
+                lx, lpos, lq = read_ligand_sdf(sdf, remove_h=self.rmH)
+            except ValueError as e:
+                if "unsupported atom type" in str(e):
+                    # Skip molecules with unsupported atom types and try the next one
+                    # print(f"[FILTER] Skipping {sdf.name}: {e}")
+                    return self.__getitem__((idx + 1) % len(self), retry_count + 1)
+                else:
+                    raise  # Re-raise other ValueError types
+            if retry_count > 10:
+                print(f"retries {retry_count}")
             # truncate to budgets
             lx, lpos, lq = lx[: self.max_l], lpos[: self.max_l], lq[: self.max_l]
 
@@ -231,7 +256,7 @@ class CrossDockedPoseDataset(Dataset):
             return batch
         except Exception as e:
             print(f"[WARN] skipping sample {self.items[idx][0]} – {e}")
-            return self.__getitem__((idx + 1) % len(self))
+            return self.__getitem__((idx + 1) % len(self), retry_count + 1)
 
 
 # -----------------------------------------------------------------------------
@@ -297,8 +322,6 @@ def get_dataloaders(
     *,
     batch_size=8,
     num_workers=0,
-    subset: Optional[int] = None,
-    subset_seed=0,
     **kws,
 ):
     print("=== MY_EXT get_dataloaders CALLED ===")
@@ -306,7 +329,6 @@ def get_dataloaders(
     va = CrossDockedPoseDataset(root_dir, split="val", **kws)
     te = CrossDockedPoseDataset(root_dir, split="test", **kws)
     # Remove Subset wrappers
-    tr, va, te = (_maybe_subset(ds, subset, subset_seed) for ds in (tr, va, te))
 
     def make_loader(ds, shuf):
         return DataLoader(
@@ -323,7 +345,7 @@ def get_dataloaders(
 # ----------------------------------------------------------------------------- #
 if __name__ == "__main__":
     root = "crossdocked/crossdocked_pocket_debug"
-    loaders = get_dataloaders(root, batch_size=20, subset=4)
+    loaders = get_dataloaders(root, batch_size=1)
     batch = next(iter(loaders["train"]))
     for k, v in batch.items():
         if k == "pdb_path":

@@ -3,29 +3,30 @@ import src.geoldm.configs.datasets_config as dsc
 from src.geoldm.my_ext.crossdock_info import crossdock_pocket10
 from src.geoldm.my_ext.crossdock_dataset import CrossDockedPoseDataset
 import sys
+from configs.paths import PRETRAINED_QM9
 
 # ----- 1.  Monkey-patch dataset info -----
 
-_get = dsc.get_dataset_info
+""" _get = dsc.get_dataset_info
 dsc.get_dataset_info = (
     lambda name, rm_h: crossdock_pocket10 if name == "crossdock_pocket10" else _get(name, rm_h)
-)
+) """
 
 # ----- 2.  Monkey-patch dataset factory -----
 
 
-def get_dataset(args, _):
+""" def get_dataset(args, _):
     train = CrossDockedPoseDataset(args.dataset_path, split="train")
     val = CrossDockedPoseDataset(args.dataset_path, split="val")
     test = CrossDockedPoseDataset(args.dataset_path, split="test")
     return train, val, test
 
 
-qm9_dataset.get_dataset = get_dataset
+qm9_dataset.get_dataset = get_dataset """
 
 # ----- 3.  CLI defaults cloned from main_qm9.py -----
 
-
+""" 
 # Patch retrieve_dataloaders to support crossdock_pocket10
 def patched_retrieve_dataloaders(cfg):
     if cfg.dataset == "crossdock_pocket10":
@@ -40,15 +41,15 @@ def patched_retrieve_dataloaders(cfg):
         return dataloaders, charge_scale
     else:
         return original_retrieve_dataloaders(cfg)
+ """
 
-
-from src.geoldm import qm9
+""" from src.geoldm import qm9
 
 original_retrieve_dataloaders = qm9.dataset.retrieve_dataloaders
-qm9.dataset.retrieve_dataloaders = patched_retrieve_dataloaders
+qm9.dataset.retrieve_dataloaders = patched_retrieve_dataloaders """
 
 
-def run_with_pocket_context():
+def main():
     from scripts.main_qm9 import main, args
 
     if getattr(args, "dataset", None) == "crossdock_pocket10":
@@ -61,7 +62,7 @@ if __name__ == "__main__":
         "--dataset",
         "crossdock_pocket10",
         "--datadir",
-        "./crossdocked/crossdocked_pocket_debug/",
+        "./crossdocked/crossdocked_5atoms_small/",
         "--n_epochs",
         "5",
         "--batch_size",
@@ -76,13 +77,15 @@ if __name__ == "__main__":
         "poc_crossdock_debug",  # New experiment name
         # "--conditioning", # remove conditioning for now
         # "pocket",
+        "--resume",
+        str(PRETRAINED_QM9),
         "--diffusion_steps",
-        "500",
+        "1000",
         "--latent_nf",  # default is 4,
         "2",
         "--lr",
         "0.0002",
-        # "--train_diffusion",
+        "--train_diffusion",
         # "--trainable_ae",
     ]
-    run_with_pocket_context()
+    main()

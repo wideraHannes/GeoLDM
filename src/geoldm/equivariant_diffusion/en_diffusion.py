@@ -11,6 +11,7 @@ from src.geoldm.equivariant_diffusion import utils as diffusion_utils
 def expm1(x: torch.Tensor) -> torch.Tensor:
     return torch.expm1(x)
 
+
 def sum_except_batch(x):
     return x.view(x.size(0), -1).sum(-1)
 
@@ -1224,9 +1225,6 @@ class EnLatentDiffusion(EnVariationalDiffusion):
             loss_recon = self.vae.compute_reconstruction_error(xh_rec, xh)
         else:
             loss_recon = 0
-
-        loss_recon_mean = torch.mean(loss_recon)
-        print("Reconstruction Loss", loss_recon_mean.item())
 
         z_x = z_xh[:, :, : self.n_dims]
         z_h = z_xh[:, :, self.n_dims :]

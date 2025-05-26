@@ -163,34 +163,50 @@ device = torch.device("cuda" if args.cuda else "cpu")
 dtype = torch.float32
 
 if args.resume is not None:
-    exp_name = args.exp_name + "_resume"
-    start_epoch = args.start_epoch
-    resume = args.resume
-    wandb_usr = args.wandb_usr
-    normalization_factor = args.normalization_factor
-    aggregation_method = args.aggregation_method
+    # Add "_resume" suffix to experiment name if not already present
+    if not args.exp_name.endswith("_resume"):
+        args.exp_name = args.exp_name + "_resume"
 
+    # Save command line args that should be preserved
+    preserved_args = {
+        "exp_name": args.exp_name,
+        "start_epoch": args.start_epoch,
+        "resume": args.resume,
+        "wandb_usr": args.wandb_usr,
+        "normalization_factor": args.normalization_factor,
+        "aggregation_method": args.aggregation_method,
+        "dataset": args.dataset,
+        "datadir": args.datadir,
+        "no_cuda": args.no_cuda,
+        "cuda": False,
+        "break_train_epoch": False,
+        "n_epochs": args.n_epochs,
+        "batch_size": args.batch_size,
+        "test_epochs": args.test_epochs,
+        "diffusion_steps": args.diffusion_steps,
+        "latent_nf": args.latent_nf,
+        "lr": args.lr,
+        "train_diffusion": args.train_diffusion,
+        "trainable_ae": args.trainable_ae,
+    }
+
+    # Load saved args
     with open(join(args.resume, "args.pickle"), "rb") as f:
-        args = pickle.load(f)
+        pickled_args = pickle.load(f)
 
-    args.resume = resume
-    args.break_train_epoch = False
+    # Update pickled args with preserved command line args
+    for key, value in preserved_args.items():
+        setattr(pickled_args, key, value)
 
-    args.exp_name = exp_name
-    args.start_epoch = start_epoch
-    args.wandb_usr = wandb_usr
+    # Replace current args with the updated pickled args
+    args = pickled_args
 
-    # Careful with this -->
-    if not hasattr(args, "normalization_factor"):
-        args.normalization_factor = normalization_factor
-    if not hasattr(args, "aggregation_method"):
-        args.aggregation_method = aggregation_method
+    # All args preservation is now handled above
 
     print(args)
 
 utils.create_folders(args)
 # print(args)
-
 
 # Wandb config
 if args.no_wandb:
@@ -208,6 +224,7 @@ kwargs = {
 }
 wandb.init(**kwargs)
 wandb.save("*.txt")
+
 
 # Retrieve QM9 dataloaders
 dataloaders, charge_scale = dataset.retrieve_dataloaders(args)
@@ -228,6 +245,7 @@ else:
     property_norms = None
 
 args.context_node_nf = context_node_nf
+
 
 # Create Latent Diffusion Model or Audoencoder
 if args.train_diffusion:
@@ -258,9 +276,11 @@ def check_mask_correct(variables, node_mask):
 
 def main():
     if args.resume is not None:
-        flow_state_dict = torch.load(join(args.resume, "flow.npy"))
-        optim_state_dict = torch.load(join(args.resume, "optim.npy"))
-        model.load_state_dict(flow_state_dict)
+        flow_state_dict = torch.load(join(args.resume, "generative_model.npy"), map_location=device)
+        optim_state_dict = torch.load(join(args.resume, "optim.npy"), map_location=device)
+
+        # Load with strict=False to ignore missing keys
+        model.load_state_dict(flow_state_dict, strict=False)
         optim.load_state_dict(optim_state_dict)
 
     # Initialize dataparallel if enabled and possible.

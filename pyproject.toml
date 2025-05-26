@@ -10,6 +10,7 @@ dependencies = [
     "imageio>=2.37.0",
     "matplotlib>=3.10.3",
     "numpy>=2.2.5",
+    "pandas>=2.2.3",
     "pip>=25.1.1",
     "rdkit>=2025.3.2",
     "scipy>=1.15.3",
@@ -17,7 +18,8 @@ dependencies = [
     "torch-geometric>=2.6.1",
     "wandb>=0.19.11",
 ]
-
+[project.scripts]
+geoldm-crossdock = "src.geoldm.my_ext.main_crossdock:main"
 [build-system]
 requires = ["setuptools >= 61.0"]
 build-backend = "setuptools.build_meta"
