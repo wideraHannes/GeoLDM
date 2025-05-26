@@ -121,13 +121,10 @@ def sample(
     context=None,
     fix_noise=False,
 ):
-    print("SAMPLE START: Entering sample function")
     max_n_nodes = dataset_info["max_n_nodes"]  # this is the maximum node_size in QM9
-    print(f"SAMPLE START: max_n_nodes={max_n_nodes}")
 
     assert int(torch.max(nodesxsample)) <= max_n_nodes
     batch_size = len(nodesxsample)
-    print(f"SAMPLE START: batch_size={batch_size}")
 
     node_mask = torch.zeros(batch_size, max_n_nodes)
     for i in range(batch_size):
@@ -141,44 +138,13 @@ def sample(
     edge_mask = edge_mask.view(batch_size * max_n_nodes * max_n_nodes, 1).to(device)
     node_mask = node_mask.unsqueeze(2).to(device)
 
-    # Handle context conditioning - fixed for pocket conditioning
-    print(f"DEBUG: Starting context conditioning. args.context_node_nf={args.context_node_nf}")
+    # TODO FIX: This conditioning just zeros.
     if args.context_node_nf > 0:
-        print(f"DEBUG: Conditioning type: {'pocket' if 'pocket' in args.conditioning else 'other'}")
-        if "pocket" in args.conditioning:
-            # For pocket conditioning
-            if context is None:
-                # Create a dummy pocket encoding with correct dimensions for sampling
-                pocket_encoding = torch.zeros(batch_size, args.context_node_nf).to(device)
-
-                # Create dummy positions for prepare_context_pocket function
-                dummy_positions = torch.zeros(batch_size, max_n_nodes, 3).to(device)
-
-                # Convert node_mask to the right format (remove last dimension)
-                atom_mask = node_mask.squeeze(-1)
-
-                # Use the prepare_context_pocket function to properly format context
-                from src.geoldm.qm9.utils import prepare_context_pocket
-
-                context = prepare_context_pocket(pocket_encoding, dummy_positions, atom_mask)
-            else:
-                # Context was provided, make sure it has the right format
-                if len(context.shape) == 2:  # [batch_size, encoding_dim]
-                    # Need to expand to all nodes
-                    dummy_positions = torch.zeros(batch_size, max_n_nodes, 3).to(device)
-                    atom_mask = node_mask.squeeze(-1)
-                    from src.geoldm.qm9.utils import prepare_context_pocket
-
-                    context = prepare_context_pocket(context, dummy_positions, atom_mask)
-        else:
-            # For non-pocket conditioning (original code)
-            if context is None:
-                context = prop_dist.sample_batch(nodesxsample)
-            context = context.unsqueeze(1).repeat(1, max_n_nodes, 1).to(device) * node_mask
+        if context is None:
+            context = prop_dist.sample_batch(nodesxsample)
+        context = context.unsqueeze(1).repeat(1, max_n_nodes, 1).to(device) * node_mask
     else:
-        print("DEBUG: No conditioning used (context_node_nf=0)")
         context = None
-    print("DEBUG: Context conditioning completed")
 
     if args.probabilistic_model == "diffusion":
         x, h = generative_model.sample(

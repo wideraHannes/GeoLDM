@@ -274,7 +274,7 @@ def sample_different_sizes_and_save(
             device,
             model,
             prop_dist=prop_dist,
-            nodesxsample=nodesxsample,
+            nodesxsample=nodesxsample,  # controls how many atoms
             dataset_info=dataset_info,
         )
         print(f"Generated molecule: Positions {x[:-1, :, :]}")
@@ -306,7 +306,12 @@ def analyze_and_save(
     for i in range(int(n_samples / batch_size)):
         nodesxsample = nodes_dist.sample(batch_size)
         one_hot, charges, x, node_mask = sample(
-            args, device, model_sample, dataset_info, prop_dist, nodesxsample=nodesxsample
+            args,
+            device,
+            model_sample,
+            dataset_info,
+            prop_dist,
+            nodesxsample=nodesxsample,
         )
 
         molecules["one_hot"].append(one_hot.detach().cpu())
@@ -325,6 +330,16 @@ def analyze_and_save(
                 "Novelty": rdkit_tuple[0][2],
             }
         )
+
+    vis.save_xyz_file(
+        "outputs/%s/epoch_%d/" % (args.exp_name, epoch),
+        one_hot,
+        charges,
+        x,
+        dataset_info,
+        node_mask=node_mask,
+    )
+
     return validity_dict
 
 

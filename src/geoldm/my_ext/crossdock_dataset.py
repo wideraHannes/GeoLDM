@@ -167,7 +167,7 @@ class CrossDockedPoseDataset(Dataset):
 
         # Allow for different split ratios
         split_mode = getattr(self, "split_mode", "equal")  # Default to equal splits
-        split_mode = "split"
+        split_mode = "equal"
         if split_mode == "equal":
             # Equal thirds split
             n_split = n // 3

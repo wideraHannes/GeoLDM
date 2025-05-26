@@ -52,8 +52,6 @@ qm9.dataset.retrieve_dataloaders = patched_retrieve_dataloaders """
 def main():
     from scripts.main_qm9 import main, args
 
-    if getattr(args, "dataset", None) == "crossdock_pocket10":
-        args.context_node_nf = 64
     main()
 
 
@@ -64,14 +62,14 @@ if __name__ == "__main__":
         "--datadir",
         "./crossdocked/crossdocked_5atoms_small/",
         "--n_epochs",
-        "5",
+        "30",
         "--batch_size",
-        "16",
+        "4",
         "--exp_name",
         "poc_crossdock",
         # "--train_diffusion",  # keep VAE frozen!
         "--test_epochs",
-        "1",
+        "5",
         "--no-cuda",
         "--exp_name",
         "poc_crossdock_debug",  # New experiment name
@@ -84,8 +82,10 @@ if __name__ == "__main__":
         "--latent_nf",  # default is 4,
         "2",
         "--lr",
-        "0.0002",
+        "0.001",
         "--train_diffusion",
         # "--trainable_ae",
+        # "--context_node_nf",
+        # "64"
     ]
     main()

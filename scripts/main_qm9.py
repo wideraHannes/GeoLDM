@@ -17,7 +17,7 @@ from src.geoldm.equivariant_diffusion.utils import assert_correctly_masked
 import torch
 import time
 import pickle
-from scripts.train_test import train_epoch, test
+from scripts.train_test import analyze_and_save, train_epoch, test
 
 parser = argparse.ArgumentParser(description="E3Diffusion")
 parser.add_argument("--exp_name", type=str, default="debug_10")
@@ -333,7 +333,6 @@ def main():
             if isinstance(model, en_diffusion.EnVariationalDiffusion):
                 wandb.log(model.log_info(), commit=True)
 
-            # if not args.break_train_epoch and args.train_diffusion:
             """  analyze_and_save(
                 args=args,
                 epoch=epoch,
@@ -342,7 +341,7 @@ def main():
                 dataset_info=dataset_info,
                 device=device,
                 prop_dist=prop_dist,
-                n_samples=4,  # args.n_stability_samples,
+                n_samples=1,  # args.n_stability_samples,
             ) """
             nll_val = test(
                 args=args,
@@ -355,7 +354,7 @@ def main():
                 nodes_dist=nodes_dist,
                 property_norms=property_norms,
             )
-            nll_test = test(
+            """             nll_test = test(
                 args=args,
                 loader=dataloaders["test"],
                 epoch=epoch,
@@ -365,7 +364,9 @@ def main():
                 dtype=dtype,
                 nodes_dist=nodes_dist,
                 property_norms=property_norms,
-            )
+            ) """
+
+            nll_test = nll_val
 
             if nll_val < best_nll_val:
                 best_nll_val = nll_val

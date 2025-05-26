@@ -23,7 +23,7 @@ crossdock_pocket10 = {
     "name": "crossdock_pocket10",
     "atom_encoder": ATOM_TYPE_TO_IDX,
     "atom_decoder": ATOM_TYPES,
-    "max_n_nodes": 128 + 512,  # lig + pocket
+    "max_n_nodes": 128,
     "with_h": False,
     "n_nodes": {
         int(i): float(p) for i, p in enumerate(n_nodes_hist.tolist())

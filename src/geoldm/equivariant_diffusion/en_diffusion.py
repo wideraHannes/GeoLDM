@@ -16,6 +16,10 @@ def sum_except_batch(x):
     return x.view(x.size(0), -1).sum(-1)
 
 
+def softplus(x: torch.Tensor) -> torch.Tensor:
+    return F.softplus(x)
+
+
 def clip_noise_schedule(alphas2, clip_value=0.001):
     """
     For a noise schedule given by alpha^2, this clips alpha_t / alpha_t-1. This may help improve stability during
@@ -810,9 +814,13 @@ class EnVariationalDiffusion(torch.nn.Module):
             z = self.sample_combined_position_feature_noise(n_samples, n_nodes, node_mask)
 
         diffusion_utils.assert_mean_zero_with_mask(z[:, :, : self.n_dims], node_mask)
+
+        self.T = 100  # # @Todo debugging
         print(f"DEBUG SAMPLE: Starting reverse diffusion process with T={self.T}")
         # Iteratively sample p(z_s | z_t) for t = 1, ..., T, with s = t - 1.
         for s in reversed(range(0, self.T)):
+            if s % 10 == 0:
+                print(s)
             s_array = torch.full((n_samples, 1), fill_value=s, device=z.device)
             t_array = s_array + 1
             s_array = s_array / self.T
